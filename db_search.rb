@@ -51,8 +51,10 @@ $dataBases.each do |dbs|
     $explain.each do |finalOne|
         #puts "#{cleanup(dbs)},#{cleanup(tables)},#{cleanup(finalOne)}"
       begin
-        puts connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"","traverse_db") unless finalOne.empty?
-        sleep 3
+        # DOes not run with this below disconnect. I assume its due to me closing the connection after every pass. So it reiterates over the arrays from the beginning.
+        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"","traverse_db") unless finalOne.empty?
+        sleep 1
+        puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
       rescue
         next
       end
