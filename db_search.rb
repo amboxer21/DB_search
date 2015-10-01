@@ -2,9 +2,13 @@
 
 require 'mysql2'
 
+def cleanup(var)
+  return var.to_s.gsub(/\[|\]|\"/,"")
+end
+
 $show_tables,$dataBases,$tables,$explain = [],[],[],[]
 def connect(db,command,flag)
-  dbf = db.to_s.gsub(/\[|\]|\"/,"")
+  dbf = cleanup(db)
   client = Mysql2::Client.new(:host => "localhost", :username => "username", :password => "password", :database => dbf)
   results = client.query(command)
   results.each do |db1|
@@ -13,7 +17,7 @@ def connect(db,command,flag)
     elsif flag == 1
       $tables.push db1.values
     elsif flag == 2
-      $explain.push "#{db1.values}"
+      $explain.push db1.values
     elsif flag == 3
       puts db1
     end
@@ -32,7 +36,7 @@ end
 
 $show_tables.each do |tables|
   begin
-    hash_split = tables.to_s.gsub(/\[|\]|\"|\\/,"").split(/,/)
+    hash_split = cleanup(tables).split(/,/)
     connect(hash_split[0], "explain #{hash_split[1]}",2)
   rescue
     next
@@ -42,8 +46,12 @@ end
 $dataBases.each do |dbs|
   $tables.each do |tables|
     $explain.each do |finalOne|
-        #puts "#{dbs},#{tables},#{finalOne}"
-        connect(dbs,"select * from #{tables} where #{finalOne} like \"%#{ARGV[0]}%\"",3)
+        #puts "#{cleanup(dbs)},#{cleanup(tables)},#{cleanup(finalOne)}"
+        cleanup(finalOne).split(/,/).each do |e|
+          puts e
+        end
+        sleep 3
+        #connect(dbs,"select * from #{tables} where #{finalOne} like \"%#{ARGV[0]}%\"",3)
     end
   end  
 end
