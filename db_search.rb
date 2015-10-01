@@ -7,6 +7,7 @@ def cleanup(var)
 end
 
 $show_tables,$dataBases,$tables,$explain = [],[],[],[]
+
 def connect(db,command,flag)
   dbf = cleanup(db)
   client = Mysql2::Client.new(:host => "localhost", :username => "username", :password => "password", :database => dbf)
@@ -17,9 +18,8 @@ def connect(db,command,flag)
     elsif flag == 1
       $tables.push db1.values
     elsif flag == 2
-      $explain.push db1.values
+      $explain.push db1.values[0]
     elsif flag == 3
-      puts db1
     end
   client.close  
   end
@@ -47,11 +47,11 @@ $dataBases.each do |dbs|
   $tables.each do |tables|
     $explain.each do |finalOne|
         #puts "#{cleanup(dbs)},#{cleanup(tables)},#{cleanup(finalOne)}"
-        cleanup(finalOne).split(/,/).each do |e|
-          puts e
-        end
+        ##  puts "select * from #{cleanup(tables)} where #{finalOne[e]} like \"%#{ARGV[0]}%\"" unless finalOne[e].empty?
+        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"",3)
+        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"",3)
+        puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
         sleep 3
-        #connect(dbs,"select * from #{tables} where #{finalOne} like \"%#{ARGV[0]}%\"",3)
     end
   end  
 end
