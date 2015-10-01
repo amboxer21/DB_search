@@ -10,18 +10,21 @@ $show_tables,$dataBases,$tables,$explain = [],[],[],[]
 
 def connect(db,command,action)
   dbf = cleanup(db)
-  client = Mysql2::Client.new(:host => "localhost", :username => "username", :password => "password", :database => dbf)
+  client = Mysql2::Client.new(:host => "localhost", :username => "root", :password => "easypeasy", :database => dbf)
   results = client.query(command)
   results.each do |db1|
     if action == "initial_query"
       $dataBases.push db1.values
+      client.close
     elsif action == "query_tables"
       $tables.push db1.values
+      client.close
     elsif action == "explain_tables" 
       $explain.push db1.values[0]
+      client.close
     elsif action == "traverse_db"
+      client.close  
     end
-  client.close  
   end
 end
 
@@ -47,9 +50,13 @@ $dataBases.each do |dbs|
   $tables.each do |tables|
     $explain.each do |finalOne|
         #puts "#{cleanup(dbs)},#{cleanup(tables)},#{cleanup(finalOne)}"
-        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"","traverse_db")
-        puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
+      begin
+        puts connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"","traverse_db") unless finalOne.empty?
         sleep 3
+      rescue
+        next
+      end
+        #puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
     end
   end  
 end
