@@ -8,27 +8,27 @@ end
 
 $show_tables,$dataBases,$tables,$explain = [],[],[],[]
 
-def connect(db,command,flag)
+def connect(db,command,action)
   dbf = cleanup(db)
   client = Mysql2::Client.new(:host => "localhost", :username => "username", :password => "password", :database => dbf)
   results = client.query(command)
   results.each do |db1|
-    if flag == 0
+    if action == "initial_query"
       $dataBases.push db1.values
-    elsif flag == 1
+    elsif action == "query_tables"
       $tables.push db1.values
-    elsif flag == 2
+    elsif action == "explain_tables" 
       $explain.push db1.values[0]
-    elsif flag == 3
+    elsif action == "traverse_db"
     end
   client.close  
   end
 end
 
-connect("hpbx_development","show databases",0)
+connect("hpbx_development","show databases","initial_query")
 
 $dataBases.each do |dbs|
-  connect(dbs,"show tables",1)
+  connect(dbs,"show tables","query_tables")
   $tables.each do |tables|
     $show_tables.push "#{dbs},#{tables}"
   end
@@ -37,7 +37,7 @@ end
 $show_tables.each do |tables|
   begin
     hash_split = cleanup(tables).split(/,/)
-    connect(hash_split[0], "explain #{hash_split[1]}",2)
+    connect(hash_split[0], "explain #{hash_split[1]}","explain_tables")
   rescue
     next
   end
@@ -47,9 +47,7 @@ $dataBases.each do |dbs|
   $tables.each do |tables|
     $explain.each do |finalOne|
         #puts "#{cleanup(dbs)},#{cleanup(tables)},#{cleanup(finalOne)}"
-        ##  puts "select * from #{cleanup(tables)} where #{finalOne[e]} like \"%#{ARGV[0]}%\"" unless finalOne[e].empty?
-        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"",3)
-        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"",3)
+        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"","traverse_db")
         puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
         sleep 3
     end
