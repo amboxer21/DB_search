@@ -23,7 +23,7 @@ def connect(db,command,action)
       $explain.push db1.values[0]
       client.close
     elsif action == "traverse_db"
-      client.close  
+      #client.close  
     end
   end
 end
@@ -52,9 +52,15 @@ $dataBases.each do |dbs|
         #puts "#{cleanup(dbs)},#{cleanup(tables)},#{cleanup(finalOne)}"
       begin
         # DOes not run with this below disconnect. I assume its due to me closing the connection after every pass. So it reiterates over the arrays from the beginning.
-        #connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"","traverse_db") unless finalOne.empty?
+        con = connect(cleanup(dbs),"select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"","traverse_db") unless finalOne.empty?
+        if con 
+          puts "found"
+          #puts "#{cleanup(dbs)},#{cleanup(tables)},#{cleanup(finalOne)}"
+          puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
+          exit
+        end
         sleep 1
-        puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
+        #puts "#{cleanup(dbs)}, select * from #{cleanup(tables)} where #{cleanup(finalOne)} like \"%#{ARGV[0]}%\"" unless finalOne.empty?
       rescue
         next
       end
