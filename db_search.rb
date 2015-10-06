@@ -18,11 +18,7 @@ def connect(db,command,action,table)
     elsif action == "query_tables"
       $tables.push db1.values
     elsif action == "explain_tables" 
-      #$explain.push db1.values
-      #$explain.each do |explain|
       db1.values.each do |explain|
-        #puts "#{explain}"
-        #x = cleanup(explain)
         if explain =~ /#{ARGV[0]}/
           puts "FOUND \"#{ARGV[0]}\" in => DATABASES(#{dbf}), TABLE(#{table})"
           exit
@@ -30,8 +26,6 @@ def connect(db,command,action,table)
           puts "\"#{ARGV[0]}\" NOT FOUND in => DATABASES(#{dbf}), TABLE(#{table})" unless explain.nil?
         end
       end
-
-      #sleep 1
     end
   end
 end
@@ -49,7 +43,6 @@ $show_tables.each do |tables|
   begin
     hash_split = cleanup(tables).split(/,/)
     connect(hash_split[0], "select * from #{hash_split[1]}","explain_tables",hash_split[1])
-    #sleep 1
   rescue
     next
   end
