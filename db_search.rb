@@ -18,15 +18,16 @@ def connect(db,command,action,table)
     elsif action == "query_tables"
       $tables.push db1.values
     elsif action == "explain_tables" 
-      $explain.push db1.values
-
-      $explain.each   do |explain|
-        x = cleanup(explain)
-        if x =~ /#{ARGV[0]}/
+      #$explain.push db1.values
+      #$explain.each do |explain|
+      db1.values.each do |explain|
+        #puts "#{explain}"
+        #x = cleanup(explain)
+        if explain =~ /#{ARGV[0]}/
           puts "FOUND \"#{ARGV[0]}\" in => DATABASES(#{dbf}), TABLE(#{table})"
           exit
         else
-          puts "X - #{x}"
+          puts "\"#{ARGV[0]}\" NOT FOUND in => DATABASES(#{dbf}), TABLE(#{table})" unless explain.nil?
         end
       end
 
