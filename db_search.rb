@@ -1,6 +1,27 @@
 #!/usr/bin/ruby
 
 require 'mysql2'
+require 'optparse'
+
+$options = {}
+
+optparse = OptionParser.new do |opts|
+  opts.banner = "\nUSAGE: DB_search.rb <string> [options]\n\n"
+  $options[:database] = false
+  opts.on('-D','--database') do 
+    $options[:database] = true
+  end
+  opts.on('-h','--help') do 
+    $options[:help] = true
+  end
+end
+
+optparse.parse!
+
+if $options[:help] || ARGV[0].nil?
+  puts "\nUSAGE: DB_search.rb <string> [options]\n\n"
+  exit
+end
 
 $show_tables,$dataBases,$tables,$explain = [],[],[],[]
 
@@ -9,7 +30,11 @@ def cleanup(var)
 end
 
 def connect(db,command,action,table)
-  dbf = cleanup(db)
+  if $options[:database] 
+    dbf = cleanup(ARGV[1])
+  else  
+    dbf = cleanup(db)
+  end
   client = Mysql2::Client.new(:host => "localhost", :username => "root", :password => "easypeasy", :database => dbf)
   results = client.query(command)
   results.each do |db1|
