@@ -71,20 +71,20 @@ $dataBases.each do |dbs|
 end
 
 def show_tables
-$show_tables.each do |tables|
-  begin
-    #if table.nil?
-    if $options[:table] 
-      table = ARGV[2]
-    else    
-      hash_split = cleanup(tables).split(/,/)
-      db = hash_split[0]
-      table = hash_split[1]
-    end 
-    connect(db, "select * from #{table}","explain_tables",table)
-  rescue
-    next
+  $show_tables.each do |tables|
+    begin
+      if $options[:table] 
+        table = ARGV[2]
+      else    
+        hash_split = cleanup(tables).split(/,/)
+        db = hash_split[0]
+        table = hash_split[1]
+      end 
+      connect(db, "select * from #{table}","explain_tables",table)
+    rescue
+      next
+    end
   end
 end
-end
+
 show_tables
