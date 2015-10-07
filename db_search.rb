@@ -27,7 +27,7 @@ end
 
 optparse.parse!
 
-if $options[:help] || ARGV[0].nil?
+def usage
   puts "\nUSAGE: DB_search.rb <string> [options]\n\n"
   puts "OPTIONS:"
   puts "    -h or --help            \"Displays this help dialog.\""
@@ -35,6 +35,10 @@ if $options[:help] || ARGV[0].nil?
   puts "    -T or --table           \"Specific MySQL table to search.\""
   puts "    -D or --database        \"Specific MySQL DataBase to search.\"\n\n"
   exit
+end
+
+if $options[:help] || ARGV[0].nil?
+  usage
 end
 
 $show_tables,$dataBases,$tables,$explain = [],[],[],[]
@@ -82,12 +86,20 @@ end
 
 connect("hpbx_development","show databases","initial_query",nil)
 
-$dataBases.each do |dbs|
-  connect(dbs,"show tables","query_tables",nil)
-  $tables.each do |tables|
-    $show_tables.push "#{dbs},#{tables}"
+def databases
+  $dataBases.each do |dbs|
+    if ARGV[0] =~ /#{dbs}/
+      puts "\n!!!! ERROR: No string was provided. #{ARGV[0]} is a database. !!!!\n"
+      usage
+    end
+    connect(dbs,"show tables","query_tables",nil)
+    $tables.each do |tables|
+      $show_tables.push "#{dbs},#{tables}"
+    end
   end
 end
+
+databases
 
 def show_tables
   $show_tables.each do |tables|
