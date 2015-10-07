@@ -49,12 +49,14 @@ def connect(db,command,action,table)
     File.open('db_search.conf', 'r').each do |cfg|
       $host = cfg.split(/,/)[0].split(/:/)[1]
       $password = cfg.split(/,/)[1].split(/:/)[1]
+      $username = cfg.split(/,/)[2].split(/:/)[1]
     end
   else
     $host = "localhost"
     $password = "easypeasy"
+    $username = "root"
   end 
-  client = Mysql2::Client.new(:host => cleanup($host), :username => "root", :password => cleanup($password), :database => dbf)
+  client = Mysql2::Client.new(:host => cleanup($host), :username => cleanup($username), :password => cleanup($password), :database => dbf)
   results = client.query(command)
   results.each do |db1|
     if action == "initial_query"
