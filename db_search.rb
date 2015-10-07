@@ -87,8 +87,10 @@ end
 connect("hpbx_development","show databases","initial_query",nil)
 
 def databases
+  #puts ARGV[0]
+  #sleep 10
   $dataBases.each do |dbs|
-    if ARGV[0] =~ /#{dbs}/
+    if ARGV[0] == dbs
       puts "\n!!!! ERROR: No string was provided. #{ARGV[0]} is a database. !!!!\n"
       usage
     end
