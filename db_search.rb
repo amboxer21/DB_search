@@ -15,6 +15,10 @@ optparse = OptionParser.new do |opts|
   opts.on('-T','--table') do 
     $options[:table] = true
   end
+  $options[:file] = false
+  opts.on('-F','--file') do 
+    $options[:file] = true
+  end
   $options[:help] = false
   opts.on('-h','--help') do 
     $options[:help] = true
@@ -32,7 +36,7 @@ end
 $show_tables,$dataBases,$tables,$explain = [],[],[],[]
 
 def cleanup(var)
-  return var.to_s.gsub(/\[|\]|\"/,"")
+  return var.to_s.gsub(/\[|\]|\"|\n+/,"")
 end
 
 def connect(db,command,action,table)
@@ -41,7 +45,16 @@ def connect(db,command,action,table)
   else  
     dbf = cleanup(db)
   end
-  client = Mysql2::Client.new(:host => "localhost", :username => "root", :password => "easypeasy", :database => dbf)
+  if $options[:file] 
+    File.open('db_search.conf', 'r').each do |cfg|
+      $host = cfg.split(/,/)[0].split(/:/)[1]
+      $password = cfg.split(/,/)[1].split(/:/)[1]
+    end
+  else
+    $host = "localhost"
+    $password = "easypeasy"
+  end 
+  client = Mysql2::Client.new(:host => cleanup($host), :username => "root", :password => cleanup($password), :database => dbf)
   results = client.query(command)
   results.each do |db1|
     if action == "initial_query"
