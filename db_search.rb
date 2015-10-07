@@ -6,7 +6,7 @@ require 'optparse'
 $options = {}
 
 optparse = OptionParser.new do |opts|
-  opts.banner = "\nUSAGE: DB_search.rb <string> [options]\n\n"
+  opts.banner = "\nA program to traverse an entire MySQL DB with a given string.\nWritten by Anthony Guevara amboxer21@gmail.com\n\n"
   $options[:database] = false
   opts.on('-D','--database') do 
     $options[:database] = true
