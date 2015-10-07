@@ -29,7 +29,11 @@ optparse.parse!
 
 if $options[:help] || ARGV[0].nil?
   puts "\nUSAGE: DB_search.rb <string> [options]\n\n"
-  puts "OPTIONS: "
+  puts "OPTIONS:"
+  puts "    -h or --help            \"Displays this help dialog.\""
+  puts "    -F or --file            \"Config file to pass into DB_search.rb.\""
+  puts "    -T or --table           \"Specific MySQL table to search.\""
+  puts "    -D or --database        \"Specific MySQL DataBase to search.\"\n\n"
   exit
 end
 
