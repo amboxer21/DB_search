@@ -20,6 +20,10 @@ optparse = OptionParser.new do |opts|
   opts.on('-F','--file') do 
     $options[:file] = true
   end
+  $options[:dblist] = false
+  opts.on('-l','--list') do 
+    $options[:dblist] = true
+  end
   $options[:help] = false
   opts.on('-h','--help') do 
     $options[:help] = true
@@ -38,6 +42,7 @@ def usage
   puts "    -F or --file            \"Config file to pass into DB_search.rb.\""
   puts "    -T or --table           \"Specific MySQL table to search.\""
   puts "    -D or --database        \"Specific MySQL DataBase to search.\"\n\n"
+  puts "    -l or --list            \"List all MySQL DataBases.\"\n\n"
   exit
 end
 
@@ -111,16 +116,20 @@ end
 
 connect("mysql","show databases","initial_query",nil)
 
-def databases
+def databases(list)
   $dataBases.each do |dbs|
-    connect(dbs,"show tables","query_tables",nil)
+    if $options[:dblist]
+      puts "Database: #{cleanup(dbs)}"
+    else
+      connect(dbs,"show tables","query_tables",nil)
+    end
     $tables.each do |tables|
       $show_tables.push "#{dbs},#{tables}"
     end
   end
 end
 
-databases
+databases(nil)
 
 def show_tables
   $show_tables.each do |tables|
