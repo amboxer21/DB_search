@@ -30,6 +30,7 @@ end
 optparse.parse!
 
 def usage
+  "\nA program to traverse an entire MySQL DB with a given string.\nWritten by Anthony Guevara amboxer21@gmail.com\n\n"
   puts "\nUSAGE: DB_search.rb <string> [options]\n\n"
   puts "OPTIONS:"
   puts "     <string>               \"String is the word you want to search the db for.\""
