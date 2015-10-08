@@ -4,6 +4,7 @@ require 'mysql2'
 require 'optparse'
 
 $options = {}
+$show_tables,$dataBases,$tables,$explain = [],[],[],[]
 
 optparse = OptionParser.new do |opts|
   opts.banner = "\nA program to traverse an entire MySQL DB with a given string.\nWritten by Anthony Guevara amboxer21@gmail.com\n\n"
@@ -30,6 +31,7 @@ optparse.parse!
 def usage
   puts "\nUSAGE: DB_search.rb <string> [options]\n\n"
   puts "OPTIONS:"
+  puts "     <string>               \"String is the word you want to search the db for.\""
   puts "    -h or --help            \"Displays this help dialog.\""
   puts "    -F or --file            \"Config file to pass into DB_search.rb.\""
   puts "    -T or --table           \"Specific MySQL table to search.\""
@@ -41,10 +43,26 @@ if $options[:help] || ARGV[0].nil?
   usage
 end
 
-$show_tables,$dataBases,$tables,$explain = [],[],[],[]
-
 def cleanup(var)
   return var.to_s.gsub(/\[|\]|\"|\n+/,"")
+end
+
+def string_check(ref,arg)
+  if ARGV[0] =~ /#{cleanup(ref)}/
+    if arg == "database"
+      puts "\n#{ARGV[0]} is a database. Please provide a string to search for."
+      usage
+    elsif arg == "tables"
+      puts "\n#{ARGV[0]} is a table. Please provide a string to search for."
+      usage
+    elsif arg == "file"
+      puts "\n#{ARGV[0]} is a conf file. Please provide a string to search for."
+      usage
+    else
+      puts "\nString not provided."
+      usage
+    end
+  end
 end
 
 def connect(db,command,action,table)
@@ -69,8 +87,10 @@ def connect(db,command,action,table)
   results.each do |db1|
     if action == "initial_query"
       $dataBases.push db1.values
+      string_check(db1.values,"database")
     elsif action == "query_tables"
       $tables.push db1.values
+      string_check(db1.values,"tables")
     elsif action == "explain_tables" 
       db1.values.each do |explain|
         if explain =~ /#{ARGV[0]}/
@@ -87,13 +107,7 @@ end
 connect("hpbx_development","show databases","initial_query",nil)
 
 def databases
-  #puts ARGV[0]
-  #sleep 10
   $dataBases.each do |dbs|
-    if ARGV[0] == dbs
-      puts "\n!!!! ERROR: No string was provided. #{ARGV[0]} is a database. !!!!\n"
-      usage
-    end
     connect(dbs,"show tables","query_tables",nil)
     $tables.each do |tables|
       $show_tables.push "#{dbs},#{tables}"
