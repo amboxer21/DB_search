@@ -50,7 +50,7 @@ def cleanup(var)
 end
 
 def string_check(ref,arg)
-  if ARGV[0] =~ /#{cleanup(ref)}/
+  if ARGV[0].downcase =~ /#{cleanup(ref).downcase}/
     if arg == "database"
       puts "\n#{ARGV[0]} is a database. Please provide a string to search for."
       usage
