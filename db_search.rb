@@ -23,6 +23,7 @@ optparse = OptionParser.new do |opts|
   $options[:help] = false
   opts.on('-h','--help') do 
     $options[:help] = true
+    puts opts.banner
   end
 end
 
