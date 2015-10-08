@@ -51,10 +51,10 @@ end
 
 def string_check(ref,arg)
   if ARGV[0].downcase =~ /#{cleanup(ref).downcase}/
-    if arg == "database"
+    if arg == "database" 
       puts "\n#{ARGV[0]} is a database. Please provide a string to search for."
       usage
-    elsif arg == "tables"
+    elsif arg == "tables" 
       puts "\n#{ARGV[0]} is a table. Please provide a string to search for."
       usage
     elsif arg == "file"
@@ -97,7 +97,10 @@ def connect(db,command,action,table)
       db1.values.each do |explain|
         if explain =~ /#{ARGV[0]}/
           puts "FOUND \"#{ARGV[0]}\" in => DATABASES(#{dbf}), TABLE(#{table})"
-          exit
+          open('results', 'w') do |write|
+            write.puts "FOUND \"#{ARGV[0]}\" in => DATABASES(#{dbf}), TABLE(#{table})"
+          end
+          sleep 10
         else
           puts "\"#{ARGV[0]}\" NOT FOUND in => DATABASES(#{dbf}), TABLE(#{table})" unless explain.nil?
         end
@@ -106,7 +109,7 @@ def connect(db,command,action,table)
   end
 end
 
-connect("hpbx_development","show databases","initial_query",nil)
+connect("mysql","show databases","initial_query",nil)
 
 def databases
   $dataBases.each do |dbs|
