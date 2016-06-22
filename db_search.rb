@@ -1,7 +1,7 @@
-#!/usr/bin/ruby
-
 require 'mysql2'
 require 'optparse'
+
+class DBSearch
 
 $options = {}
 $show_tables,$dataBases,$tables,$explain = [],[],[],[]
@@ -29,6 +29,10 @@ optparse = OptionParser.new do |opts|
     $options[:help] = true
     puts opts.banner
   end
+  $options[:verbose] = false
+  opts.on('-v','--verbose') do 
+    $options[:verbose] = true
+  end
 end
 
 optparse.parse!
@@ -38,6 +42,7 @@ def usage
   puts "\nUSAGE: DB_search.rb <string> [options]\n\n"
   puts "OPTIONS:"
   puts "     <string>               \"String is the word you want to search the db for.\""
+  puts "    -v or --verbose         \"Print queries in real time.\""
   puts "    -h or --help            \"Displays this help dialog.\""
   puts "    -F or --file            \"Config file to pass into DB_search.rb.\""
   puts "    -T or --table           \"Specific MySQL table to search.\""
@@ -50,33 +55,23 @@ if $options[:help] || ARGV[0].nil?
   usage
 end
 
-def cleanup(var)
-  return var.to_s.gsub(/\[|\]|\"|\n+/,"")
-end
+$host = "host"
+$password = "password"
+$username = "uname"
+$databases, @results = [], []
 
-def string_check(ref,arg)
-  if ARGV[0].downcase =~ /#{cleanup(ref).downcase}/
-    if arg == "database" 
-      puts "\n#{ARGV[0]} is a database. Please provide a string to search for."
-      usage
-    elsif arg == "tables" 
-      puts "\n#{ARGV[0]} is a table. Please provide a string to search for."
-      usage
-    elsif arg == "file"
-      puts "\n#{ARGV[0]} is a conf file. Please provide a string to search for."
-      usage
-    else
-      puts "\nString not provided."
-      usage
-    end
+FILE = '/home/anthony/Documents/Ruby/DB_search/temp1'
+
+# Zero out file before writing to it.
+def truncate_file
+  File.open(FILE, "w") do |f|
+    f.truncate(0)
   end
 end
 
-def connect(db,command,action,table)
+def connect(host,username,password,db)
   if $options[:database] 
-    dbf = cleanup(ARGV[1])
-  else  
-    dbf = cleanup(db)
+    db = ARGV[1]
   end
   if $options[:file] 
     File.open('db_search.conf', 'r').each do |cfg|
@@ -84,68 +79,76 @@ def connect(db,command,action,table)
       $password = cfg.split(/,/)[1].split(/:/)[1]
       $username = cfg.split(/,/)[2].split(/:/)[1]
     end
-  else
-    $host = "localhost"
-    $password = "easypeasy"
-    $username = "root"
   end 
-  client = Mysql2::Client.new(:host => cleanup($host), :username => cleanup($username), :password => cleanup($password), :database => dbf)
-  results = client.query(command)
-  results.each do |db1|
-    if action == "initial_query"
-      $dataBases.push db1.values
-      string_check(db1.values,"database")
-    elsif action == "query_tables"
-      $tables.push db1.values
-      string_check(db1.values,"tables")
-    elsif action == "explain_tables" 
-      db1.values.each do |explain|
-        if explain =~ /#{ARGV[0]}/
-          puts "FOUND \"#{ARGV[0]}\" in => DATABASES(#{dbf}), TABLE(#{table})"
-          open('results', 'w') do |write|
-            write.puts "FOUND \"#{ARGV[0]}\" in => DATABASES(#{dbf}), TABLE(#{table})"
-          end
-          sleep 10
-        else
-          puts "\"#{ARGV[0]}\" NOT FOUND in => DATABASES(#{dbf}), TABLE(#{table})" unless explain.nil?
-        end
-      end
+	if db.nil?
+  	client = Mysql2::Client.new(:host     => host, 
+			      										:username => username, 
+			      										:password => password)	
+	else
+  	client = Mysql2::Client.new(:host     => host, 
+			      										:username => username, 
+			      										:password => password,
+																:database => db)
+	end
+end
+
+def query_dbs
+  client = connect($host,$username,$password,nil)
+  results = client.query('show databases;')
+  results.each do |key,val|
+    key.each {|k,v| $databases.push v}
+  end
+end
+
+def query_tables
+	@count = 0
+  $databases.each do |db|
+		@count += 1
+		$databases.push db unless db == db if @count == 5
+		$databases.each do |db|
+			@client = connect($host,$username,$password,db)
+			@client.query('show tables;').each do |res|
+				res.each do |k,v|
+					File.open(FILE,'a+') do |f| 
+						f.write("#{k.gsub(/^Tables_in_/,'')},#{v}\n")
+					end
+				end
+			end
+		end
+	end
+end
+
+def traverse_db
+  File.open(FILE, "r") do |f|
+    f.each_line do |l|
+
+      l = l.split(/,/)
+			@dbs 	  = l[0]
+			@tables = l[1]  		
+			@client = connect($host,$username,$password,nil)
+
+			unless @dbs.nil? || @tables.nil?
+				@client.query("use #{@dbs};") 
+				@client.query("explain #{@tables};").each do |y|
+					puts "\n\nDatabase: #{@dbs}\nTable: #{@tables}\n#{y}" if $options[:verbose]
+					sleep 1
+					begin
+						@client.query("select * from #{@tables} where #{y.values[0]} like \"#{ARGV[0]}\";").each do |q|
+							puts "-> FOUND #{q}. \n   Database: #{@dbs}\n   Table: #{@tables}   Query: #{ARGV[0]}" if q
+							return
+						end
+					rescue
+						next
+					end
+				end
+			end
     end
   end
 end
 
-connect("mysql","show databases","initial_query",nil)
-
-def databases(list)
-  $dataBases.each do |dbs|
-    if $options[:dblist]
-      puts "Database: #{cleanup(dbs)}"
-    else
-      connect(dbs,"show tables","query_tables",nil)
-    end
-    $tables.each do |tables|
-      $show_tables.push "#{dbs},#{tables}"
-    end
-  end
 end
-
-databases(nil)
-
-def show_tables
-  $show_tables.each do |tables|
-    begin
-      if $options[:table] 
-        table = ARGV[2]
-      else    
-        hash_split = cleanup(tables).split(/,/)
-        db = hash_split[0]
-        table = hash_split[1]
-      end 
-      connect(db, "select * from #{table}","explain_tables",table)
-    rescue
-      next
-    end
-  end
-end
-
-show_tables
+db_search = DBSearch.new
+db_search.query_dbs
+db_search.truncate_file
+db_search.query_tables
+db_search.traverse_db
